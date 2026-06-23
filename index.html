@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>for you ♡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     DESIGN TOKENS  —  "dia-kkku" (Korean diary deco) system
+  ========================================================= */
+  :root{
+    /* paper + ink */
+    --paper:#fbf6ee;
+    --paper-2:#fff;
+    --dot:rgba(74,63,58,.06);
+    --ink:#4a3f3a;
+    --ink-soft:#9b8a80;
+    --line:rgba(74,63,58,.12);
+
+    /* a tight, considered palette */
+    --rose:#f48fa5;
+    --rose-deep:#df6e87;
+    --rose-wash:#fde6ec;
+    --butter:#ffd98a;
+    --butter-wash:#fff2d3;
+    --sage:#a7d3bf;
+    --sage-wash:#e4f2ec;
+    --sky:#a6c8ee;
+    --sky-wash:#e6f0fb;
+    --lilac:#cbb6e6;
+    --lilac-wash:#f0e9f9;
+
+    /* spacing scale */
+    --s1:8px; --s2:16px; --s3:24px; --s4:40px; --s5:64px; --s6:96px;
+
+    /* layered, soft shadows (apple-ish depth, paper-soft) */
+    --sh-sm:0 1px 2px rgba(74,63,58,.05), 0 2px 6px rgba(74,63,58,.05);
+    --sh-md:0 6px 14px rgba(74,63,58,.07), 0 14px 34px rgba(74,63,58,.06);
+    --sh-lg:0 10px 24px rgba(74,63,58,.09), 0 28px 60px rgba(74,63,58,.08);
+
+    --spring:cubic-bezier(.34,1.56,.64,1);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+  html{scroll-behavior:smooth}
+
+  body{
+    font-family:'Gowun Dodum',system-ui,sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    /* the signature: a bullet-journal dotted grid on warm paper */
+    background-image:radial-gradient(var(--dot) 1.4px, transparent 1.5px);
+    background-size:26px 26px;
+    background-position:-13px -13px;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    cursor:none;
+  }
+  @media (pointer:coarse){
+    body{cursor:auto}
+    .cursor-dot,.cursor-ring{display:none!important}
+  }
+
+  /* warm paper vignette so edges feel like real stock */
+  .vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    box-shadow:inset 0 0 160px rgba(180,150,120,.10), inset 0 0 40px rgba(180,150,120,.05);
+  }
+  /* faint paper fibre grain */
+  .grain{
+    position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.04;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:180px;
+  }
+
+  /* =========================================================
+     CURSOR  —  minimal dot + lagging ring
+  ========================================================= */
+  .cursor-dot{position:fixed;top:0;left:0;width:7px;height:7px;border-radius:50%;
+    background:var(--rose-deep);z-index:9999;pointer-events:none;transform:translate(-50%,-50%);
+    transition:width .2s,height .2s,background .2s}
+  .cursor-ring{position:fixed;top:0;left:0;width:30px;height:30px;border-radius:50%;
+    border:1.5px solid rgba(223,110,135,.4);z-index:9998;pointer-events:none;
+    transform:translate(-50%,-50%);transition:width .25s var(--spring),height .25s var(--spring),border-color .25s,background .25s}
+  body.hovering .cursor-ring{width:54px;height:54px;border-color:var(--butter);background:rgba(255,217,138,.12)}
+  body.hovering .cursor-dot{background:var(--butter)}
+
+  /* sparkle twinkle (cursor) */
+  .tw{position:fixed;z-index:9997;pointer-events:none;
+    clip-path:polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%);
+    animation:tw .8s var(--ease) forwards}
+  @keyframes tw{0%{transform:translate(-50%,-50%) scale(0) rotate(0)}40%{transform:translate(-50%,-50%) scale(1) rotate(25deg);opacity:1}100%{transform:translate(-50%,-50%) scale(0) rotate(60deg);opacity:0}}
+
+  /* =========================================================
+     LOADER
+  ========================================================= */
+  .loader{position:fixed;inset:0;z-index:10000;background:var(--paper);
+    background-image:radial-gradient(var(--dot) 1.4px,transparent 1.5px);background-size:26px 26px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    transition:opacity .7s var(--ease),visibility .7s}
+  .loader.gone{opacity:0;visibility:hidden}
+  .loader svg{width:62px;height:62px;overflow:visible}
+  .loader .draw{fill:none;stroke:var(--rose-deep);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:230;stroke-dashoffset:230;animation:draw 1.3s var(--ease) forwards, fillin .5s ease 1.2s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes fillin{to{fill:var(--rose-wash)}}
+  .loader p{font-family:'Nanum Pen Script',cursive;font-size:1.5rem;color:var(--ink-soft);opacity:0;
+    animation:fade .5s ease .5s forwards}
+  @keyframes fade{to{opacity:1}}
+
+  /* =========================================================
+     PROGRESS  —  a "washi tape" measuring strip
+  ========================================================= */
+  .progress{position:fixed;top:0;left:0;height:5px;width:0%;z-index:9990;
+    background:repeating-linear-gradient(45deg,var(--rose) 0 8px,var(--rose-deep) 8px 16px);
+    box-shadow:0 1px 4px rgba(223,110,135,.3);transition:width .12s linear;opacity:.85}
+
+  /* =========================================================
+     LAYOUT
+  ========================================================= */
+  section{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:var(--s6) var(--s3);text-align:center}
+
+  .kicker{font-family:'Gaegu',cursive;font-weight:700;font-size:.95rem;letter-spacing:.5px;
+    color:var(--rose-deep);display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;
+    padding:5px 16px;border-radius:30px;background:var(--rose-wash);
+    border:1.5px dashed rgba(223,110,135,.35)}
+  .kicker .ko{font-size:1.15rem;line-height:1}
+  .kicker .en{opacity:.7;font-weight:400;font-size:.8rem;text-transform:lowercase;letter-spacing:1px}
+
+  .title{font-family:'Gaegu',cursive;font-weight:700;line-height:1.15;color:var(--ink);
+    font-size:clamp(2rem,5.5vw,3.2rem);margin-bottom:var(--s5);position:relative;display:inline-block}
+  .title .ul{display:block;margin:10px auto 0;width:120px;height:10px}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(36px);transition:opacity .8s var(--ease),transform .8s var(--spring)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* =========================================================
+     HERO
+  ========================================================= */
+  .hero{gap:0}
+  .hero-stage{position:relative;transition:transform .2s var(--ease)}
+  .hello-tag{display:inline-flex;align-items:baseline;gap:8px;font-family:'Gaegu',cursive;font-weight:700;
+    background:var(--paper-2);color:var(--rose-deep);padding:7px 18px;border-radius:30px;
+    box-shadow:var(--sh-sm);border:1.5px solid var(--rose-wash);transform:rotate(-3deg);
+    opacity:0;animation:pop .6s var(--spring) .3s forwards}
+  .hello-tag .ko{font-size:1.35rem}.hello-tag .en{font-size:.8rem;color:var(--ink-soft);font-weight:400}
+  @keyframes pop{from{opacity:0;transform:rotate(-3deg) scale(.6)}to{opacity:1;transform:rotate(-3deg) scale(1)}}
+
+  .hero-name{font-family:'Gaegu',cursive;font-weight:700;color:var(--ink);
+    font-size:clamp(3.4rem,12vw,7.5rem);line-height:1.05;margin:18px 0 6px}
+  .hero-name .ltr{display:inline-block;opacity:0;transform:translateY(60px) rotate(-10deg) scale(.4);
+    animation:ltr .7s var(--spring) forwards}
+  .hero-name .accent{color:var(--rose-deep)}
+  @keyframes ltr{to{opacity:1;transform:none}}
+
+  .hero-sub{font-size:clamp(1rem,2.4vw,1.25rem);color:var(--ink-soft);max-width:30ch;margin:0 auto;
+    opacity:0;animation:fade .8s ease 1.7s forwards;line-height:1.6}
+
+  .hero-deco{position:absolute;pointer-events:none;opacity:0;animation:fade 1s ease 1.9s forwards}
+
+  .scrolldown{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    font-family:'Nanum Pen Script',cursive;color:var(--ink-soft);font-size:1.25rem;
+    opacity:0;animation:fade .8s ease 2.3s forwards;transition:opacity .4s}
+  .scrolldown.hide{opacity:0!important;pointer-events:none}
+  .scrolldown .mouse{width:24px;height:38px;border:2px solid var(--ink-soft);border-radius:14px;position:relative}
+  .scrolldown .mouse::after{content:'';position:absolute;top:7px;left:50%;width:4px;height:7px;border-radius:3px;
+    background:var(--ink-soft);transform:translateX(-50%);animation:wheel 1.4s ease infinite}
+  @keyframes wheel{0%{opacity:1;transform:translate(-50%,0)}70%{opacity:0;transform:translate(-50%,12px)}100%{opacity:0}}
+
+  /* =========================================================
+     INTRO  —  a journal page note, slightly rotated, taped
+  ========================================================= */
+  .note-page{position:relative;background:var(--paper-2);border-radius:6px;max-width:600px;
+    padding:54px 44px;box-shadow:var(--sh-md);transform:rotate(-1.2deg);
+    background-image:repeating-linear-gradient(transparent 0 37px, var(--line) 37px 38px);
+    background-position:0 22px}
+  .note-page::before{/* red margin line of a notebook */
+    content:'';position:absolute;left:34px;top:0;bottom:0;width:1.5px;background:rgba(244,143,165,.4)}
+  .note-text{font-family:'Gaegu',cursive;font-weight:400;font-size:clamp(1.3rem,3.2vw,1.9rem);
+    line-height:38px;color:var(--ink);position:relative;text-align:left;padding-left:14px}
+  .note-text em{font-style:normal;font-weight:700;color:var(--rose-deep);position:relative;white-space:nowrap}
+  .note-text em::after{content:'';position:absolute;left:-2px;right:-2px;bottom:2px;height:9px;
+    background:var(--butter);opacity:.55;border-radius:6px;z-index:-1}
+  .stamp{position:absolute;right:-16px;bottom:-16px;width:88px;height:88px;transform:rotate(12deg)}
+
+  /* =========================================================
+     STICKERS  —  the reason cards as die-cut paper stickers
+  ========================================================= */
+  .stickers{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:34px 28px;
+    max-width:1000px;width:100%;padding:0 var(--s2)}
+  .sticker{position:relative;background:var(--paper-2);border-radius:20px;padding:38px 26px 30px;
+    box-shadow:var(--sh-md);text-align:left;
+    /* die-cut white outline */
+    outline:6px solid var(--paper-2);outline-offset:-1px;
+    transition:transform .5s var(--spring),box-shadow .4s var(--ease)}
+  .sticker:nth-child(3n+1){transform:rotate(-1.6deg)}
+  .sticker:nth-child(3n+2){transform:rotate(1.1deg)}
+  .sticker:nth-child(3n+3){transform:rotate(-.6deg)}
+  .sticker:hover{transform:rotate(0deg) translateY(-8px) scale(1.025);box-shadow:var(--sh-lg)}
+  .sticker .tape{position:absolute;top:-13px;left:50%;width:96px;height:26px;transform:translateX(-50%) rotate(-3deg);
+    border-radius:2px;box-shadow:0 2px 6px rgba(74,63,58,.08)}
+  .sticker .ico{width:60px;height:60px;margin-bottom:12px}
+  .sticker h3{font-family:'Gaegu',cursive;font-weight:700;font-size:1.55rem;color:var(--ink);margin-bottom:8px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sticker h3 .ko{font-size:1.05rem;color:var(--rose-deep);background:var(--rose-wash);
+    padding:1px 9px;border-radius:20px;line-height:1.5}
+  .sticker p{font-size:.95rem;line-height:1.7;color:var(--ink-soft)}
+  .stickers .sticker:nth-child(1){transition-delay:0s}
+  .stickers .sticker:nth-child(2){transition-delay:.06s}
+  .stickers .sticker:nth-child(3){transition-delay:.12s}
+  .stickers .sticker:nth-child(4){transition-delay:.18s}
+  .stickers .sticker:nth-child(5){transition-delay:.24s}
+  .stickers .sticker:nth-child(6){transition-delay:.3s}
+
+  /* tape colour variants */
+  .t-rose{background:repeating-linear-gradient(-45deg,rgba(244,143,165,.55) 0 6px,rgba(244,143,165,.32) 6px 12px)}
+  .t-butter{background:repeating-linear-gradient(90deg,rgba(255,217,138,.6) 0 7px,rgba(255,217,138,.32) 7px 14px)}
+  .t-sage{background:radial-gradient(rgba(167,211,191,.7) 1.5px,rgba(167,211,191,.3) 1.6px);background-size:9px 9px}
+  .t-sky{background:repeating-linear-gradient(45deg,rgba(166,200,238,.55) 0 6px,rgba(166,200,238,.3) 6px 12px)}
+  .t-lilac{background:radial-gradient(rgba(203,182,230,.75) 1.5px,rgba(203,182,230,.32) 1.6px);background-size:9px 9px}
+
+  /* =========================================================
+     WORDS  —  scattered sticker word-chips
+  ========================================================= */
+  .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 13px;max-width:760px}
+  .chip{font-family:'Gaegu',cursive;font-weight:700;font-size:1.05rem;padding:8px 20px;border-radius:30px;
+    background:var(--paper-2);box-shadow:var(--sh-sm);border:1.5px solid var(--line);
+    transition:transform .35s var(--spring),box-shadow .35s;will-change:transform;
+    animation:bob 5s ease-in-out infinite}
+  .chip:hover{transform:translateY(-7px) rotate(-2deg) scale(1.07)!important;box-shadow:var(--sh-md)}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .c-rose{color:var(--rose-deep);background:var(--rose-wash)}
+  .c-butter{color:#b8862e;background:var(--butter-wash)}
+  .c-sage{color:#4f947a;background:var(--sage-wash)}
+  .c-sky{color:#5b87c4;background:var(--sky-wash)}
+  .c-lilac{color:#8a6fb0;background:var(--lilac-wash)}
+
+  /* =========================================================
+     ENVELOPES  —  letters
+  ========================================================= */
+  .envs{display:flex;flex-wrap:wrap;gap:40px;justify-content:center;max-width:960px}
+  .env{width:280px;perspective:900px;cursor:none}
+  @media (pointer:coarse){.env{cursor:pointer}}
+  .env-in{position:relative;width:100%;padding-top:70%;transition:transform .5s var(--spring)}
+  .env:hover .env-in{transform:translateY(-6px)}
+  .env-body{position:absolute;inset:0;border-radius:14px;overflow:hidden;box-shadow:var(--sh-md);
+    background:linear-gradient(165deg,#fffaf4,#ffeede);border:1.5px solid rgba(244,143,165,.18)}
+  .env-flap{position:absolute;top:0;left:0;right:0;height:54%;z-index:3;transform-origin:top center;
+    background:linear-gradient(165deg,#ffd7c9,#ffc6b6);clip-path:polygon(0 0,50% 70%,100% 0);
+    transition:transform .6s var(--ease)}
+  .env.open .env-flap{transform:rotateX(178deg)}
+  .env-seal{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;
+    background:var(--rose);display:flex;align-items:center;justify-content:center;z-index:4;
+    box-shadow:0 3px 8px rgba(223,110,135,.35);transition:transform .4s var(--spring),opacity .3s}
+  .env-seal svg{width:18px;height:18px}
+  .env.open .env-seal{transform:translate(-50%,-50%) scale(0);opacity:0}
+  .env-label{position:absolute;bottom:18px;left:0;right:0;text-align:center;z-index:2;
+    font-family:'Gaegu',cursive;font-weight:700;font-size:1.1rem;color:var(--rose-deep);transition:opacity .3s}
+  .env.open .env-label{opacity:0}
+  .env-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:26px 22px;
+    text-align:center;font-size:.9rem;line-height:1.6;color:var(--ink);opacity:0;transform:translateY(14px);
+    transition:opacity .5s .25s,transform .5s .25s var(--spring);z-index:2}
+  .env.open .env-msg{opacity:1;transform:none}
+
+  /* confetti */
+  .conf{position:fixed;z-index:9000;pointer-events:none;border-radius:2px}
+
+  /* =========================================================
+     CLOSING
+  ========================================================= */
+  .closing-text{font-family:'Gaegu',cursive;font-weight:700;font-size:clamp(2rem,5.5vw,3.4rem);
+    line-height:1.35;max-width:16ch;color:var(--ink)}
+  .closing-text .hl{color:var(--rose-deep);position:relative;white-space:nowrap}
+  .closing-text .hl::after{content:'';position:absolute;left:0;right:0;bottom:4px;height:10px;
+    background:var(--butter);opacity:.5;border-radius:6px;z-index:-1}
+  .closing-sub{margin-top:22px;font-size:1.02rem;color:var(--ink-soft);font-family:'Gowun Dodum',sans-serif}
+  .fighting{margin-top:18px;font-family:'Gaegu',cursive;font-weight:700;color:var(--rose-deep);
+    font-size:1.2rem;display:inline-flex;gap:8px;align-items:baseline}
+  .fighting .en{font-size:.85rem;color:var(--ink-soft);font-weight:400}
+
+  .boop-wrap{margin-top:46px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .boop{width:78px;height:78px;cursor:none;animation:beat 1.3s ease infinite;transition:transform .12s}
+  @media (pointer:coarse){.boop{cursor:pointer}}
+  .boop:active{transform:scale(1.35)!important;animation:none}
+  @keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.13)}28%{transform:scale(1)}42%{transform:scale(1.09)}}
+  .boop-count{font-family:'Nanum Pen Script',cursive;font-size:1.5rem;color:var(--rose-deep);min-height:30px}
+
+  .mini{position:fixed;z-index:9500;pointer-events:none;animation:rise 1s ease-out forwards}
+  @keyframes rise{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-130px) scale(.4) rotate(20deg)}}
+
+  /* =========================================================
+     FLOATING DOODLES (sparse, slow, intentional)
+  ========================================================= */
+  .floaty{position:absolute;z-index:2;pointer-events:none;opacity:.5;will-change:transform}
+  @keyframes drift{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-18px) rotate(8deg)}100%{transform:translateY(0) rotate(0)}}
+
+  /* footer */
+  .footer{position:relative;z-index:3;text-align:center;padding:30px 20px 56px;
+    font-family:'Nanum Pen Script',cursive;font-size:1.3rem;color:var(--ink-soft);opacity:.7}
+  .footer .ko{color:var(--rose-deep)}
+
+  /* =========================================================
+     RESPONSIVE
+  ========================================================= */
+  @media (max-width:640px){
+    section{padding:var(--s6) var(--s2)}
+    .stickers{grid-template-columns:1fr;gap:30px}
+    .note-page{padding:42px 26px 42px 34px}
+    .envs{gap:30px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+    .reveal{opacity:1;transform:none}
+    .tw,.conf,.mini,.floaty{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- ============ LOADER ============ -->
+<div class="loader" id="loader">
+  <svg viewBox="0 0 50 50"><path class="draw" d="M25 43 C25 43,4 29,4 16 C4 9,10 4,16 4 C21 4,24 7,25 10 C26 7,29 4,34 4 C40 4,46 9,46 16 C46 29,25 43,25 43Z"/></svg>
+  <p>예쁘게 만드는 중... making it pretty</p>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-stage" id="heroStage">
+    <span class="hello-tag"><span class="ko">안녕,</span><span class="en">annyeong</span></span>
+    <h1 class="hero-name" id="heroName"></h1>
+    <p class="hero-sub">i made this tiny corner of the internet just for you</p>
+
+    <!-- hand-drawn deco around the name -->
+    <svg class="hero-deco" style="top:-26px;left:-46px;width:54px" viewBox="0 0 50 50" fill="none">
+      <path d="M25 4 C25 14,14 25,4 25 C14 25,25 36,25 46 C25 36,36 25,46 25 C36 25,25 14,25 4Z" fill="#ffd98a" stroke="#df6e87" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <svg class="hero-deco" style="bottom:-30px;right:-40px;width:46px" viewBox="0 0 50 50" fill="none">
+      <path d="M25 6 l5 13 14 1 -11 9 4 14 -12 -8 -12 8 4 -14 -11 -9 14 -1z" fill="#a6c8ee" stroke="#5b87c4" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="scrolldown" id="scrolldown">
+    <span>스크롤 ↓</span>
+    <div class="mouse"></div>
+  </div>
+</section>
+
+<!-- ============ INTRO ============ -->
+<section>
+  <div class="note-page reveal">
+    <p class="note-text">
+      so i was sitting here thinking about all the people in the world, and how somehow the universe decided to put <em>you</em> in my life.
+      <br><br>
+      pretty solid move, universe.
+    </p>
+    <!-- a little wax-stamp doodle -->
+    <svg class="stamp" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="30" fill="#fde6ec" stroke="#df6e87" stroke-width="2" stroke-dasharray="4 4"/>
+      <path d="M40 52 C40 52,26 43,26 34 C26 30,29 27,33 27 C36 27,39 30,40 32 C41 30,44 27,47 27 C51 27,54 30,54 34 C54 43,40 52,40 52Z" fill="#f48fa5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ============ REASONS (sticker cards) ============ -->
+<section>
+  <span class="kicker reveal"><span class="ko">이유</span><span class="en">reasons</span></span>
+  <h2 class="title reveal">a few reasons you're annoyingly great
+    <svg class="ul" viewBox="0 0 120 12" fill="none"><path d="M3 7 C30 1,60 11,90 5 C102 2,112 6,117 5" stroke="#f48fa5" stroke-width="3.5" stroke-linecap="round"/></svg>
+  </h2>
+
+  <div class="stickers">
+    <!-- laugh -->
+    <div class="sticker reveal">
+      <span class="tape t-rose"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="32" r="22" fill="#fff" stroke="#4a3f3a" stroke-width="2.6"/>
+        <path d="M21 27 q4 -6 8 0M35 27 q4 -6 8 0" stroke="#4a3f3a" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M20 36 q12 15 24 0z" fill="#f48fa5" stroke="#4a3f3a" stroke-width="2.6" stroke-linejoin="round"/>
+        <circle cx="19" cy="35" r="3" fill="#f48fa5" opacity=".5"/><circle cx="45" cy="35" r="3" fill="#f48fa5" opacity=".5"/>
+        <path d="M52 16 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5z" fill="#ffd98a"/>
+      </svg>
+      <h3>your laugh <span class="ko">대박</span></h3>
+      <p>the one that starts normal and then just completely falls apart. it's so contagious it should come with a warning label. genuinely a threat to public composure.</p>
+    </div>
+    <!-- brain -->
+    <div class="sticker reveal">
+      <span class="tape t-sky"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <path d="M32 8 C20 8,13 16,15 27 C16 33,21 35,21 41 l22 0 C43 35,48 33,49 27 C51 16,44 8,32 8Z" fill="#fff" stroke="#4a3f3a" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M24 41 v4 a3 3 0 0 0 3 3 h10 a3 3 0 0 0 3 -3 v-4" fill="#a6c8ee" stroke="#4a3f3a" stroke-width="2.6"/>
+        <path d="M32 22 l2.5 6 6.5 .4 -5 4.3 1.7 6.3 -5.7 -3.7 -5.7 3.7 1.7 -6.3 -5 -4.3 6.5 -.4z" fill="#ffd98a" stroke="#4a3f3a" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M50 14 l1 3 3 1 -3 1 -1 3 -1 -3 -3 -1 3 -1z" fill="#df6e87"/>
+      </svg>
+      <h3>your brain <span class="ko">천재</span></h3>
+      <p>how you casually connect dots nobody else even notices? i'll be overthinking something for hours and you'll just solve it. in one sentence. while barely paying attention. rude, honestly.</p>
+    </div>
+    <!-- energy -->
+    <div class="sticker reveal">
+      <span class="tape t-butter"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <g stroke="#4a3f3a" stroke-width="2.6" stroke-linecap="round">
+          <path d="M32 6 v8M32 50 v8M6 32 h8M50 32 h8M13 13 l6 6M45 45 l6 6M51 13 l-6 6M19 45 l-6 6"/>
+        </g>
+        <circle cx="32" cy="32" r="13" fill="#ffd98a" stroke="#4a3f3a" stroke-width="2.6"/>
+        <path d="M27 30 q1.5 -2.5 3 0M34 30 q1.5 -2.5 3 0" stroke="#4a3f3a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M28 36 q4 4 8 0" stroke="#4a3f3a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        <circle cx="26" cy="35" r="2" fill="#f48fa5" opacity=".6"/><circle cx="38" cy="35" r="2" fill="#f48fa5" opacity=".6"/>
+      </svg>
+      <h3>your energy <span class="ko">햇살</span></h3>
+      <p>you have this thing where you show up and the whole room just recalibrates. it's been scientifically studied. (it hasn't. but it should be.)</p>
+    </div>
+    <!-- kindness -->
+    <div class="sticker reveal">
+      <span class="tape t-rose"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <path d="M32 52 C32 52,8 38,8 22 C8 13,15 7,22 7 C27 7,30 10,32 14 C34 10,37 7,42 7 C49 7,56 13,56 22 C56 38,32 52,32 52Z" fill="#f48fa5" stroke="#4a3f3a" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M23 24 q2 -3 4 0M37 24 q2 -3 4 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M27 30 q5 5 10 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+        <path d="M14 12 l1 3 3 1 -3 1 -1 3 -1 -3 -3 -1 3 -1z" fill="#ffd98a"/>
+      </svg>
+      <h3>your kindness <span class="ko">천사</span></h3>
+      <p>you do nice things for people and then act confused when they notice. like being kind is just your default setting. that's genuinely rare and you should probably know that.</p>
+    </div>
+    <!-- chaos -->
+    <div class="sticker reveal">
+      <span class="tape t-lilac"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <path d="M12 40 C8 30,16 22,26 24 C24 14,38 10,44 18 C54 16,58 28,50 34 C56 40,50 50,40 47 C36 54,24 54,22 46 C12 49,8 44,12 40Z" fill="#fff" stroke="#4a3f3a" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M22 34 q6 -8 12 0 q5 7 10 -1" stroke="#cbb6e6" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M33 22 l-5 9 6 1 -5 9" stroke="#ffd98a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <h3>your chaos <span class="ko">4차원</span></h3>
+      <p>the 2am "okay but hear me out" moments. the topic switches that give everyone whiplash. the unhinged train of thought that somehow always lands somewhere brilliant. never stop.</p>
+    </div>
+    <!-- strength -->
+    <div class="sticker reveal">
+      <span class="tape t-sage"></span>
+      <svg class="ico" viewBox="0 0 64 64" fill="none">
+        <path d="M32 12 l5.5 11 12 1.8 -8.7 8.5 2 12 -10.8 -5.6 -10.8 5.6 2 -12 -8.7 -8.5 12 -1.8z" fill="#a7d3bf" stroke="#4a3f3a" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M27 28 q1.5 -2.5 3 0M34 28 q1.5 -2.5 3 0" stroke="#4a3f3a" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M28 33 q4 4 8 0" stroke="#4a3f3a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+        <path d="M50 44 l1.2 3.4 3.4 1.2 -3.4 1.2 -1.2 3.4 -1.2 -3.4 -3.4 -1.2 3.4 -1.2z" fill="#df6e87"/>
+      </svg>
+      <h3>your strength <span class="ko">최강</span></h3>
+      <p>you deal with things that would have most people checking out, and you just keep going. while being funny about it. that's honestly disgusting. (in the most impressive way.)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WORDS ============ -->
+<section>
+  <span class="kicker reveal"><span class="ko">단어</span><span class="en">words</span></span>
+  <h2 class="title reveal">words that are basically just you
+    <svg class="ul" viewBox="0 0 120 12" fill="none"><path d="M3 6 C30 11,60 1,90 7 C102 10,112 5,117 6" stroke="#cbb6e6" stroke-width="3.5" stroke-linecap="round"/></svg>
+  </h2>
+  <div class="chips reveal">
+    <span class="chip c-rose">sunshine</span>
+    <span class="chip c-lilac">chaotic (affectionately)</span>
+    <span class="chip c-butter">warm</span>
+    <span class="chip c-sky">sparkly</span>
+    <span class="chip c-sage">home</span>
+    <span class="chip c-rose">brave</span>
+    <span class="chip c-lilac">ridiculous</span>
+    <span class="chip c-butter">golden</span>
+    <span class="chip c-sky">rare</span>
+    <span class="chip c-sage">magic</span>
+    <span class="chip c-rose">loud (endearingly)</span>
+    <span class="chip c-lilac">soft</span>
+    <span class="chip c-butter">stubborn (lovingly)</span>
+    <span class="chip c-sky">irreplaceable</span>
+    <span class="chip c-sage">fragrance</span>
+  </div>
+</section>
+
+<!-- ============ ENVELOPES ============ -->
+<section>
+  <span class="kicker reveal"><span class="ko">편지</span><span class="en">letters</span></span>
+  <h2 class="title reveal">tiny letters for you
+    <svg class="ul" viewBox="0 0 120 12" fill="none"><path d="M3 7 C30 2,60 10,90 5 C102 3,112 7,117 6" stroke="#ffd98a" stroke-width="3.5" stroke-linecap="round"/></svg>
+  </h2>
+  <div class="envs">
+    <div class="env reveal" data-msg="reminder: you are literally one of the best people i know. this is not up for debate. i checked the data. it's science at this point.">
+      <div class="env-in"><div class="env-body">
+        <div class="env-flap"></div>
+        <div class="env-seal"><svg viewBox="0 0 24 24"><path d="M12 21 C12 21,3 15,3 9 C3 6,5 4,8 4 C10 4,11 5,12 7 C13 5,14 4,16 4 C19 4,21 6,21 9 C21 15,12 21,12 21Z" fill="#fff"/></svg></div>
+        <div class="env-label">for when you forget you're amazing</div>
+        <div class="env-msg"></div>
+      </div></div>
+    </div>
+    <div class="env reveal" data-msg="hey. whatever happened today doesn't define you. you're still the same incredible person you were yesterday. also, drink some water. i'm serious.">
+      <div class="env-in"><div class="env-body">
+        <div class="env-flap"></div>
+        <div class="env-seal"><svg viewBox="0 0 24 24"><path d="M12 2 C12 7,7 12,2 12 C7 12,12 17,12 22 C12 17,17 12,22 12 C17 12,12 7,12 2Z" fill="#fff"/></svg></div>
+        <div class="env-label">for a bad day</div>
+        <div class="env-msg"></div>
+      </div></div>
+    </div>
+    <div class="env reveal" data-msg="hi :) there is no reason for this one. i just wanted to say i'm really, really glad you exist. that's it. that's the whole message. okay bye ♡">
+      <div class="env-in"><div class="env-body">
+        <div class="env-flap"></div>
+        <div class="env-seal"><svg viewBox="0 0 24 24"><path d="M12 2 l2.6 6.4 6.9 .4 -5.3 4.5 1.8 6.7 -6 -3.9 -6 3.9 1.8 -6.7 -5.3 -4.5 6.9 -.4z" fill="#fff"/></svg></div>
+        <div class="env-label">for no reason at all</div>
+        <div class="env-msg"></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLOSING ============ -->
+<section class="closing">
+  <p class="closing-text reveal">the world got something really, really right when it made <span class="hl">you, Khushboo.</span></p>
+  <p class="closing-sub reveal">and i'm not just saying that. i mean it with every pixel on this page.</p>
+  <p class="fighting reveal"><span>화이팅! ♡</span><span class="en">(you've got this)</span></p>
+  <div class="boop-wrap reveal">
+    <svg class="boop" id="boop" viewBox="0 0 64 64"><path d="M32 56 C32 56,5 39,5 21 C5 12,12 6,20 6 C26 6,30 10,32 15 C34 10,38 6,44 6 C52 6,59 12,59 21 C59 39,32 56,32 56Z" fill="#f48fa5" stroke="#df6e87" stroke-width="2.5" stroke-linejoin="round"/><path d="M22 24 q2 -3 4 0M38 24 q2 -3 4 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M26 30 q6 6 12 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+    <div class="boop-count" id="boopCount"></div>
+  </div>
+</section>
+
+<div class="footer">made with way too much effort &amp; zero regrets · <span class="ko">진심을 담아</span> ♡</div>
+
+<script>
+/* ---------- loader ---------- */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{document.getElementById('loader').classList.add('gone');buildName();},1700);
+});
+function buildName(){
+  const el=document.getElementById('heroName');
+  const text='Khushboo';
+  [...text].forEach((ch,i)=>{
+    const s=document.createElement('span');
+    s.className='ltr accent';
+    s.textContent=ch;
+    s.style.animationDelay=(0.4+i*0.07)+'s';
+    el.appendChild(s);
+  });
+}
+
+/* ---------- cursor ---------- */
+const dot=document.querySelector('.cursor-dot'),ring=document.querySelector('.cursor-ring');
+let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';});
+(function ring_(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ring_);})();
+const hov='.sticker,.env,.boop,.chip,.note-page';
+document.addEventListener('mouseover',e=>{if(e.target.closest(hov))document.body.classList.add('hovering');});
+document.addEventListener('mouseout',e=>{if(e.target.closest(hov))document.body.classList.remove('hovering');});
+
+/* ---------- twinkle trail (sparse + tasteful) ---------- */
+let tn=0;const twc=['#f48fa5','#ffd98a','#a7d3bf','#a6c8ee','#cbb6e6'];
+addEventListener('mousemove',e=>{
+  if(++tn%6)return;
+  const t=document.createElement('div');t.className='tw';
+  const s=Math.random()*7+5;
+  t.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;width:${s}px;height:${s}px;background:${twc[tn/6%twc.length|0]}`;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),800);
+});
+
+/* ---------- reveal on scroll ---------- */
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting)en.target.classList.add('in')}),{threshold:.12,rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- scroll hint + progress + paper tint ---------- */
+const sd=document.getElementById('scrolldown'),pg=document.getElementById('progress');
+const tints=[[251,246,238],[253,244,242],[244,242,250],[251,246,238]];
+const lerp=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
+addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-innerHeight,p=h>0?scrollY/h:0;
+  pg.style.width=(p*100)+'%';
+  if(scrollY>70)sd.classList.add('hide');
+  const seg=p*(tints.length-1),i=Math.min(seg|0,tints.length-2),c=lerp(tints[i],tints[i+1],seg-i);
+  document.body.style.backgroundColor=`rgb(${c[0]},${c[1]},${c[2]})`;
+},{passive:true});
+
+/* ---------- hero parallax ---------- */
+const stage=document.getElementById('heroStage');
+addEventListener('mousemove',e=>{
+  const dx=(e.clientX/innerWidth-.5),dy=(e.clientY/innerHeight-.5);
+  stage.style.transform=`translate(${dx*-14}px,${dy*-10}px)`;
+});
+
+/* ---------- envelopes + confetti ---------- */
+function confetti(x,y){
+  const cs=['#f48fa5','#ffd98a','#a7d3bf','#a6c8ee','#cbb6e6','#fff'];
+  for(let i=0;i<26;i++){
+    const c=document.createElement('div');c.className='conf';
+    const sz=Math.random()*7+4,ang=(Math.PI*2*i/26)+(Math.random()-.5),d=Math.random()*90+40;
+    c.style.cssText=`left:${x}px;top:${y}px;width:${sz}px;height:${sz*.6}px;background:${cs[i%cs.length]};border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(c);
+    c.animate([{transform:'translate(0,0) rotate(0) scale(1)',opacity:1},
+      {transform:`translate(${Math.cos(ang)*d}px,${Math.sin(ang)*d-30}px) rotate(${540+Math.random()*360}deg) scale(.2)`,opacity:0}],
+      {duration:900+Math.random()*400,easing:'cubic-bezier(.25,.46,.45,.94)',fill:'forwards'});
+    setTimeout(()=>c.remove(),1400);
+  }
+}
+document.querySelectorAll('.env').forEach(env=>{
+  env.addEventListener('click',()=>{
+    const was=env.classList.contains('open');
+    env.classList.toggle('open');
+    if(!was){
+      env.querySelector('.env-msg').textContent=env.dataset.msg;
+      const r=env.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/3);
+    }
+  });
+});
+
+/* ---------- boop heart ---------- */
+const boop=document.getElementById('boop'),bc=document.getElementById('boopCount');
+let n=0;const lines=[[1,'boop! ♡'],[3,'boop boop boop'],[5,"누구야~ who's pressing this"],[10,'대박! ten boops?!'],[15,'okay this is getting out of hand'],[20,'짱! you out-booped the system'],[30,'still here?? go drink water 물 마셔!'],[50,'FIFTY. 진짜 dedication.'],[100,"okay now you're just showing off 😤"]];
+const emo=['❤️','🩷','💕','💖','✨','🌸','⭐'];
+boop.addEventListener('click',()=>{
+  n++;let m=n+(n===1?' boop':' boops');
+  for(const[k,v]of lines)if(n===k){m=v;break;}
+  bc.textContent=m;
+  const h=document.createElement('div');h.className='mini';h.textContent=emo[Math.random()*emo.length|0];
+  const r=boop.getBoundingClientRect();
+  h.style.left=(r.left+r.width/2+(Math.random()-.5)*44)+'px';
+  h.style.top=(r.top+(Math.random()-.5)*16)+'px';h.style.fontSize=(Math.random()*8+14)+'px';
+  document.body.appendChild(h);setTimeout(()=>h.remove(),1000);
+  boop.style.transform='scale(1.3)';setTimeout(()=>boop.style.transform='',120);
+});
+
+/* ---------- floating doodles (sparse, parallax) ---------- */
+const doodles=[
+  {svg:`<path d="M16 2 l3.6 8.6 9.3 .7 -7.1 6 2.3 9 -8.1 -5 -8.1 5 2.3 -9 -7.1 -6 9.3 -.7z" fill="#ffd98a" stroke="#df6e87" stroke-width="1.6" stroke-linejoin="round"/>`,size:34},
+  {svg:`<path d="M16 28 C16 28,3 20,3 11 C3 6,7 3,11 3 C14 3,15 6,16 8 C17 6,18 3,21 3 C25 3,29 6,29 11 C29 20,16 28,16 28Z" fill="#fde6ec" stroke="#f48fa5" stroke-width="1.6" stroke-linejoin="round"/>`,size:30},
+  {svg:`<path d="M8 20 a7 7 0 0 1 1 -14 a8 8 0 0 1 15 1 a6 6 0 0 1 0 13z" fill="#fff" stroke="#a6c8ee" stroke-width="1.8" stroke-linejoin="round"/>`,size:36},
+  {svg:`<path d="M16 3 C16 11,11 16,3 16 C11 16,16 21,16 29 C16 21,21 16,29 16 C21 16,16 11,16 3Z" fill="#cbb6e6" stroke="#8a6fb0" stroke-width="1.4" stroke-linejoin="round"/>`,size:26},
+  {svg:`<circle cx="16" cy="16" r="9" fill="#a7d3bf" stroke="#4f947a" stroke-width="1.6"/><g stroke="#4f947a" stroke-width="1.6" stroke-linecap="round"><path d="M16 2v4M16 26v4M2 16h4M26 16h4"/></g>`,size:30}
+];
+const positions=[[6,18],[88,12],[10,52],[90,60],[14,82],[84,86],[50,8]];
+const layer=document.createElement('div');document.body.appendChild(layer);
+const fset=[];
+positions.forEach((p,i)=>{
+  const d=doodles[i%doodles.length];
+  const wrap=document.createElement('div');wrap.className='floaty';
+  wrap.style.cssText=`left:${p[0]}vw;top:${p[1]}vh;width:${d.size}px`;
+  wrap.style.animation=`drift ${8+i*1.4}s ease-in-out ${i*.6}s infinite`;
+  wrap.innerHTML=`<svg viewBox="0 0 32 32" style="width:100%">${d.svg}</svg>`;
+  document.body.appendChild(wrap);fset.push({el:wrap,depth:.02+(i%3)*.015});
+});
+addEventListener('scroll',()=>{fset.forEach(f=>f.el.style.marginTop=(-scrollY*f.depth)+'px')},{passive:true});
+
+/* ---------- rotating tab title ---------- */
+const tt=['for you ♡','♡ 안녕 Khushboo','✿ you\'re 최고','♡ :)'];let ti=0;
+setInterval(()=>document.title=tt[ti=(ti+1)%tt.length],3000);
+</script>
+</body>
+</html>
